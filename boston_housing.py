@@ -9,7 +9,9 @@ from sklearn.tree import DecisionTreeRegressor
 ################################
 ### ADD EXTRA LIBRARIES HERE ###
 ################################
-
+from sklearn.cross_validation import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn import grid_search
 
 def load_data():
     """Load the Boston dataset."""
@@ -31,13 +33,19 @@ def explore_city_data(city_data):
 
     # Please calculate the following values using the Numpy library
     # Size of data (number of houses)?
+    print "Size of data:", len(housing_prices)
     # Number of features?
+    print "Number of features:", len(housing_features[0])
     # Minimum price?
+    print "Minimum price:", np.min(housing_prices)
     # Maximum price?
+    print "Maximum price:", np.max(housing_prices)
     # Calculate mean price?
+    print "Mean price:", np.mean(housing_prices)
     # Calculate median price?
+    print "Median price:", np.median(housing_prices)
     # Calculate standard deviation?
-
+    print "Standard deviation:", np.std(housing_prices)
 
 def split_data(city_data):
     """Randomly shuffle the sample set. Divide it into 70 percent training and 30 percent testing data."""
@@ -48,6 +56,9 @@ def split_data(city_data):
     ###################################
     ### Step 2. YOUR CODE GOES HERE ###
     ###################################
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.7)
 
     return X_train, y_train, X_test, y_test
 
@@ -61,7 +72,7 @@ def performance_metric(label, prediction):
 
     # The following page has a table of scoring functions in sklearn:
     # http://scikit-learn.org/stable/modules/classes.html#sklearn-metrics-metrics
-    pass
+    return mean_squared_error(label, prediction)
 
 
 def learning_curve(depth, X_train, y_train, X_test, y_test):
@@ -166,6 +177,7 @@ def fit_predict_model(city_data):
     # obtain the parameters that generate the best training performance. Set up
     # the grid search object here.
     # http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
+    reg = grid_search.GridSearchCV(regressor, parameters, scoring='mean_squared_error')
 
     # Fit the learner to the training data to obtain the best parameter set
     print "Final Model: "
@@ -194,11 +206,11 @@ def main():
 
     # Learning Curve Graphs
     max_depths = [1,2,3,4,5,6,7,8,9,10]
-    for max_depth in max_depths:
-        learning_curve(max_depth, X_train, y_train, X_test, y_test)
+    #for max_depth in max_depths:
+    #    learning_curve(max_depth, X_train, y_train, X_test, y_test)
 
     # Model Complexity Graph
-    model_complexity(X_train, y_train, X_test, y_test)
+    # model_complexity(X_train, y_train, X_test, y_test)
 
     # Tune and predict Model
     fit_predict_model(city_data)
