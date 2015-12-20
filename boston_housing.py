@@ -9,8 +9,9 @@ from sklearn.tree import DecisionTreeRegressor
 ################################
 ### ADD EXTRA LIBRARIES HERE ###
 ################################
+import pandas as pd
 from sklearn.cross_validation import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score, make_scorer
 from sklearn import grid_search
 
 def load_data():
@@ -26,26 +27,50 @@ def explore_city_data(city_data):
     # Get the labels and features from the housing data
     housing_prices = city_data.target
     housing_features = city_data.data
-
+    # Feature descriptions taken from the boston dataset DESCR variable
+    feature_desc = ["Per capita crime rate by town",
+                    "Proportion of residential land zoned for lots over 25,000 sq.ft.",
+                    "Proportion of non-retail business acres per town",
+                    "Charles River dummy variable (= 1 if tract bounds river; 0 otherwise)",
+                    "Nitric oxides concentration (parts per 10 million)",
+                    "Average number of rooms per dwelling",
+                    "Proportion of owner-occupied units built prior to 1940",
+                    "Weighted distances to five Boston employment centres",
+                    "Index of accessibility to radial highways",
+                    "Full-value property-tax rate per $10,000",
+                    "Pupil-teacher ratio by town",
+                    "1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town",
+                    "% lower status of the population"]
+    feature_means = np.mean(housing_features, axis=0)
+    feature_stds = np.std(housing_features, axis=0)
     ###################################
     ### Step 1. YOUR CODE GOES HERE ###
     ###################################
-
+    
+    #Feature parameters
+    print "Feature Parameters: Mean - STD"
+    print ""
+    for i, s in enumerate(feature_desc):
+        print s,"=", "%.2f" % feature_means[i], "%.2f" % feature_stds[i]
+    print ""
+    
     # Please calculate the following values using the Numpy library
     # Size of data (number of houses)?
-    print "Size of data:", len(housing_prices)
+    print "Data parameters:"
+    print ""
+    print "Number of data points (houses) =", len(housing_prices)
     # Number of features?
-    print "Number of features:", len(housing_features[0])
+    print "Number of features =", len(housing_features[0])
     # Minimum price?
-    print "Minimum price:", np.min(housing_prices)
+    print "Minimum house price =", np.min(housing_prices)
     # Maximum price?
-    print "Maximum price:", np.max(housing_prices)
+    print "Maximum house price =", np.max(housing_prices)
     # Calculate mean price?
-    print "Mean price:", np.mean(housing_prices)
+    print "Mean house price =", "%.2f" % np.mean(housing_prices)
     # Calculate median price?
-    print "Median price:", np.median(housing_prices)
+    print "Median house price =", np.median(housing_prices)
     # Calculate standard deviation?
-    print "Standard deviation:", np.std(housing_prices)
+    print "Standard deviation of house prices =", "%.2f" % np.std(housing_prices)
 
 def split_data(city_data):
     """Randomly shuffle the sample set. Divide it into 70 percent training and 30 percent testing data."""
@@ -72,7 +97,7 @@ def performance_metric(label, prediction):
 
     # The following page has a table of scoring functions in sklearn:
     # http://scikit-learn.org/stable/modules/classes.html#sklearn-metrics-metrics
-    return mean_squared_error(label, prediction)
+    return r2_score(label, prediction)
 
 
 def learning_curve(depth, X_train, y_train, X_test, y_test):
@@ -177,12 +202,13 @@ def fit_predict_model(city_data):
     # obtain the parameters that generate the best training performance. Set up
     # the grid search object here.
     # http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
-    reg = grid_search.GridSearchCV(regressor, parameters, scoring='mean_squared_error')
+    r2_scorer = make_scorer(performance_metric)
+    reg = grid_search.GridSearchCV(regressor, parameters, scoring=r2_scorer)
 
     # Fit the learner to the training data to obtain the best parameter set
     print "Final Model: "
     print reg.fit(X, y)
-
+    print reg.best_params_
     # Use the model to predict the output of a particular sample
     x = [11.95, 0.00, 18.100, 0, 0.6590, 5.6090, 90.00, 1.385, 24, 680.0, 20.20, 332.09, 12.13]
     y = reg.predict(x)
@@ -206,11 +232,11 @@ def main():
 
     # Learning Curve Graphs
     max_depths = [1,2,3,4,5,6,7,8,9,10]
-    #for max_depth in max_depths:
-    #    learning_curve(max_depth, X_train, y_train, X_test, y_test)
+    for max_depth in max_depths:
+        learning_curve(max_depth, X_train, y_train, X_test, y_test)
 
     # Model Complexity Graph
-    # model_complexity(X_train, y_train, X_test, y_test)
+    model_complexity(X_train, y_train, X_test, y_test)
 
     # Tune and predict Model
     fit_predict_model(city_data)
