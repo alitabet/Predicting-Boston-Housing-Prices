@@ -83,7 +83,7 @@ def split_data(city_data):
     ###################################
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.7)
+        X, y, test_size=0.3)
 
     return X_train, y_train, X_test, y_test
 
@@ -97,7 +97,7 @@ def performance_metric(label, prediction):
 
     # The following page has a table of scoring functions in sklearn:
     # http://scikit-learn.org/stable/modules/classes.html#sklearn-metrics-metrics
-    return r2_score(label, prediction)
+    return mean_squared_error(label, prediction)
 
 
 def learning_curve(depth, X_train, y_train, X_test, y_test):
@@ -202,16 +202,17 @@ def fit_predict_model(city_data):
     # obtain the parameters that generate the best training performance. Set up
     # the grid search object here.
     # http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
-    r2_scorer = make_scorer(performance_metric)
-    reg = grid_search.GridSearchCV(regressor, parameters, scoring=r2_scorer)
+    error_metric = make_scorer(performance_metric, greater_is_better=False)
+    reg = grid_search.RandomizedSearchCV(regressor, parameters, scoring=error_metric)
 
     # Fit the learner to the training data to obtain the best parameter set
     print "Final Model: "
     print reg.fit(X, y)
     print reg.best_params_
     # Use the model to predict the output of a particular sample
+    est = reg.best_estimator_ # get the best estimator from grid search
     x = [11.95, 0.00, 18.100, 0, 0.6590, 5.6090, 90.00, 1.385, 24, 680.0, 20.20, 332.09, 12.13]
-    y = reg.predict(x)
+    y = est.predict(x)
     print "House: " + str(x)
     print "Prediction: " + str(y)
 
